@@ -43,3 +43,19 @@ test('A missing string delimiter does not color the following line as a string',
   assert(next.tokens[0].scopes.includes('keyword.control.usagi'));
   assert(!next.tokens[0].scopes.includes('string.quoted.usagi'));
 });
+
+test('Array types and comma-separated input preserve name boundaries', () => {
+  const source = '냠? 하치와레: 사람수,하치와레: 관계수,야 야하!';
+  assert(scopeAt(source, '냠?').includes('keyword.control.usagi'));
+  assert(scopeAt(source, ',').includes('punctuation.separator.usagi'));
+  assert(!scopeAt(source, ',').includes('entity.name.usagi'));
+  assert(scopeAt(source, '관계수').includes('entity.name.usagi'));
+  assert(scopeAt(source, '야 ').includes('variable.language.usagi'));
+  assert(scopeAt('야얏! 뿌릇 야 야하!', '야얏!').includes('storage.type.usagi'));
+});
+
+test('Embedded newline marker has its own scope inside strings', () => {
+  const source = '우~라~ 하치! 앞우이!뒤 와레! 야하!';
+  assert(scopeAt(source, '우이!').includes('constant.character.escape.usagi'));
+  assert(scopeAt(source, '우이!').includes('string.quoted.usagi'));
+});

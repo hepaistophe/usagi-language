@@ -92,13 +92,13 @@ class ArgumentNativeTests(unittest.TestCase):
         cls.root = Path(cls.temporary.name)
         fixtures = {'example': (ROOT / 'examples/feeding_arguments.usagi').read_text(encoding='utf-8')}
         fixtures['nested'] = ADD + program('우~라~ 하치와레: 더하기 냠! 하치와레: 더하기 냠! 뿌르 냠! 뿌르르 꿀꺽! 냠! 뿌르르르 꿀꺽! 야하!')
-        reader = '우나! 하치와레: 읽기 얏! 야 뿌 야하! 하아? 야 야하! 우~나! 야\n'
+        reader = '우나! 하치와레: 읽기 얏! 야 뿌 야하! 냠? 야 야하! 우~나! 야\n'
         fixtures['order'] = reader + '우나! 하치와레: 빼기 냠! 얏! 야 냠! 얏! 야야 우~나! 야 하아! 야야\n' + program('우~라~ 하치와레: 빼기 냠! 하치와레: 읽기 우라! 우라라! 냠! 하치와레: 읽기 우라! 우라라! 꿀꺽! 야하!')
         fixtures['convert'] = '우나! 하치와레: 변환 냠! 얏! 야 냠! 핫! 야야 우~나! 야 하! 야야\n' + program('우~라~ 하치와레: 변환 냠! 릇뿌뿌르르르.뿌릇 냠! 뿌르 꿀꺽! 야하!')
         fixtures['copy'] = '우나! 하치와레: 바꾸기 냠! 하치와레! 야 야 야~하! 하치! 새 값 와레! 야하! 우~나! 야\n' + program('하치와레! 야 하치! 원래 값 와레! 야하! 우~라~ 하치와레: 바꾸기 냠! 야 꿀꺽! 야하! 우~라~ 야 야하!')
         fixtures['local'] = '우나! 하치와레: 바꾸기 냠! 얏! 야 우랏! 얏! 야 뿌릇 야하! 우~라~ 야 야하! 우라랏! 야 야~하! 야 하! 뿌르 야하! 우~나! 야\n' + program('얏! 야 뿌르 야하! 우~라~ 하치와레: 바꾸기 냠! 야 꿀꺽! 야하! 우~라~ 야 야하!')
         fixtures['loop'] = '우나! 하치와레: 합계 냠! 얏! 야 얏! 야야 뿌 야하! 우쨔? 야 야야 야~하! 야야 하! 뿌야! 야하! 우쨔! 우~나! 야야\n' + program('우~라~ 하치와레: 합계 냠! 뿌르르르 꿀꺽! 야하!')
-        fixtures['overflow'] = '우나! 하치와레: 정수 냠! 얏! 야 우~나! 야\n' + program('핫! 야 뿌 야하! 하아? 야 야하! 우~라~ 하치와레: 정수 냠! 야 꿀꺽! 야하!')
+        fixtures['overflow'] = '우나! 하치와레: 정수 냠! 얏! 야 우~나! 야\n' + program('핫! 야 뿌 야하! 냠? 야 야하! 우~라~ 하치와레: 정수 냠! 야 꿀꺽! 야하!')
         cls.binaries = {}
         try:
             for name, source in fixtures.items():

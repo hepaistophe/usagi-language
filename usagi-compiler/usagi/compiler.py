@@ -13,12 +13,13 @@ KEYWORDS = {
     "우나!": "FUNCTION", "우~나!": "RETURN", "야하!": "END",
     "우랏!": "OPEN", "우라랏!": "CLOSE",
     "우라!": "LPAREN", "우라라!": "RPAREN",
-    "얏!": "INT", "핫!": "REAL", "얏핫!": "CHAR", "하치와레!": "STRING",
+    "얏!": "INT", "핫!": "REAL", "얏핫!": "CHAR", "하치와레!": "STRING", "야얏!": "INT_ARRAY",
     "얏하핫!": "OLD_STRING", "하치와레:": "NAME_PREFIX",
     "하치!": "STRING_OPEN", "와레!": "STRING_CLOSE",
     "야~하!": "ASSIGN", "하!": "ADD", "하아!": "SUB",
     "하핫!": "MUL", "푸루!": "DIV", "푸루루!": "MOD",
-    "하아?": "INPUT", "우~라~": "OUTPUT",
+    "하아?": "INPUT", "냠?": "NUMBER_INPUT", "우~라~": "OUTPUT",
+    ",": "COMMA", "우이!": "NEWLINE",
     "갸웃?": "SIGN", "갸웃!": "SIGN_END",
     "야호!": "POSITIVE", "하아...": "ZERO", "우우...": "NEGATIVE",
     "우쨔?": "COUNT", "우쨔!": "COUNT_END", "뿌야!": "REMAINING",
@@ -70,7 +71,7 @@ def lex(source: str) -> list[Token]:
                     raise CompileError(token, "문자열을 닫는 와레!가 같은 줄에 필요합니다.")
                 text = line[position + 3:end]
                 # One adjacent ASCII space on each side is syntax padding.
-                text = text.removeprefix(" ").removesuffix(" ")
+                text = text.removeprefix(" ").removesuffix(" ").replace("우이!", "\n")
                 if "\0" in text or len(text.encode("utf-8")) > 4095:
                     raise CompileError(token, "문자열은 NUL 없이 UTF-8 4095바이트까지 지원합니다.")
                 position = end + 3
@@ -78,13 +79,13 @@ def lex(source: str) -> list[Token]:
                     raise CompileError(token, "와레! 뒤의 문법 토큰은 공백으로 구분하세요.")
                 tokens.append(Token("TEXT", text, line_number, start + 1))
                 continue
-            match = re.match(r"\S+", line[position:])
+            match = re.match(r"[^\s,]+|,", line[position:])
             text = match.group()
             position += len(text)
             if text == "하치와레:":
                 words = []
                 while position < len(line):
-                    next_match = re.match(r"\s*(\S+)", line[position:])
+                    next_match = re.match(r"\s*([^\s,]+)", line[position:])
                     if next_match is None:
                         break
                     word = next_match.group(1)
@@ -115,6 +116,8 @@ def lex(source: str) -> list[Token]:
                 raise CompileError(Token(kind, text, line_number, start + 1), "문자열형 얏하핫!은 하치와레!로 바뀌었습니다.")
             if kind == "STRING_CLOSE":
                 raise CompileError(Token(kind, text, line_number, start + 1), "문자열 시작 하치! 없이 와레!를 사용할 수 없습니다.")
+            if kind == "NEWLINE":
+                raise CompileError(Token(kind, text, line_number, start + 1), "우이!는 하치! … 와레! 문자열 안의 개행 표기입니다.")
             tokens.append(Token(kind, text, line_number, start + 1))
     eof_line = len(lines) + 1 if source.endswith(("\n", "\r")) else max(1, len(lines))
     eof_column = 1 if not lines or source.endswith(("\n", "\r")) else len(lines[-1]) + 1
@@ -146,6 +149,8 @@ class Statement:
     binding: str = ""
     branches: list["Branch"] = field(default_factory=list)
     needs_continue: bool = False
+    target: Expr | None = None
+    targets: list[Expr] = field(default_factory=list)
 
 
 @dataclass
@@ -301,20 +306,29 @@ class Parser:
         if token.kind in ("INT", "REAL", "STRING"):
             name = self.variable_name()
             result = Statement(token, "declare", name, self.expression(), type={"INT": "int", "REAL": "real", "STRING": "string"}[token.kind])
-        elif token.kind in ("NAME", "SHORT_NAME"):
-            if self.current.kind in ("LPAREN", "FEED"):
-                result = Statement(token, "call", expr=self.call(token))
-            else:
-                self.expect("ASSIGN", "변수에 다시 대입하려면 야~하!를 사용하세요.")
-                result = Statement(token, "assign", token, self.expression())
+        elif token.kind == "INT_ARRAY":
+            size = self.expression(indexing=False)
+            result = Statement(token, "array_declare", self.variable_name(), size, type="int_array")
         elif token.kind == "INPUT":
-            result = Statement(token, "input", self.variable_name())
+            result = Statement(token, "input", target=self.expression())
+        elif token.kind == "NUMBER_INPUT":
+            targets = [self.expression()]
+            while self.current.kind == "COMMA":
+                self.take()
+                targets.append(self.expression())
+            result = Statement(token, "number_input", targets=targets)
         elif token.kind == "OUTPUT":
             result = Statement(token, "output", expr=self.expression())
         elif token.kind in ("BREAK", "CONTINUE"):
             result = Statement(token, token.kind.lower())
-        elif token.kind == "REMAINING":
-            raise CompileError(token, "뿌야!는 읽기 전용 남은 횟수이며 대입하거나 입력받을 수 없습니다.")
+        elif token.kind in ("NAME", "SHORT_NAME", "NUMBER", "LPAREN", "REMAINING"):
+            self.index -= 1
+            target = self.expression(assignment_target=True)
+            if target.kind == "call" and self.current.kind == "END":
+                result = Statement(token, "call", expr=target)
+            else:
+                self.expect("ASSIGN", "변수나 배열 원소에 대입하려면 야~하!를 사용하세요.")
+                result = Statement(token, "assign", expr=self.expression(), target=target)
         else:
             raise CompileError(token, "선언, 대입, 입출력, 블록, 제어문 또는 함수 호출문이 필요합니다.")
         self.expect("END", "문장 끝에 야하!가 필요합니다.")
@@ -334,7 +348,7 @@ class Parser:
         self.expect("SWALLOW", "먹이기 호출을 끝내는 꿀꺽!이 필요합니다.")
         return Expr(name, "call", name.text, args=args)
 
-    def expression(self, minimum: int = 0) -> Expr:
+    def expression(self, minimum: int = 0, indexing: bool = True, assignment_target: bool = False) -> Expr:
         token = self.take()
         if token.kind == "NUMBER":
             try:
@@ -356,10 +370,18 @@ class Parser:
             self.expect("RPAREN", "괄호를 닫는 우라라!가 필요합니다.")
         else:
             raise CompileError(token, "숫자, 문자열, 하치와레: 이름 또는 우라! … 우라라! 식이 필요합니다.")
+        while indexing and self.current.kind in ("NAME", "SHORT_NAME"):
+            # A following assignment/call can be the first statement of a loop
+            # body; its variable/function name is not part of the condition.
+            following = self.tokens[self.index + 1].kind
+            if following in ("LPAREN", "FEED") or (following == "ASSIGN" and not assignment_target):
+                break
+            name = self.take()
+            left = Expr(name, "index", name.text, left=left, type="int")
         precedence = {"ADD": 1, "SUB": 1, "MUL": 2, "DIV": 2, "MOD": 2}
         while precedence.get(self.current.kind, -1) >= minimum:
             operator = self.take()
-            right = self.expression(precedence[operator.kind] + 1)
+            right = self.expression(precedence[operator.kind] + 1, indexing=indexing)
             left = Expr(operator, "binary", operator.kind, left, right)
         return left
 
@@ -398,6 +420,12 @@ def analyze(program: Program) -> None:
         def expression(expr: Expr) -> str:
             if expr.kind == "variable":
                 expr.type, expr.binding = lookup(expr.token)
+            elif expr.kind == "index":
+                if expression(expr.left) != "int":
+                    raise CompileError(expr.left.token, "배열 인덱스는 정수여야 합니다.")
+                array_type, expr.binding = lookup(expr.token)
+                if array_type != "int_array":
+                    raise CompileError(expr.token, "인덱스 뒤의 변수는 야얏! 정수 배열이어야 합니다.")
             elif expr.kind == "remaining":
                 if not counted_loops:
                     raise CompileError(expr.token, "뿌야!는 같은 함수의 우쨔? 횟수 반복 안에서만 사용할 수 있습니다.")
@@ -417,6 +445,8 @@ def analyze(program: Program) -> None:
                 expr.type, expr.binding = callee.type, callee.binding
             elif expr.kind == "binary":
                 left, right = expression(expr.left), expression(expr.right)
+                if "int_array" in (left, right):
+                    raise CompileError(expr.token, "배열 전체로 계산할 수 없습니다. 인덱스로 원소를 선택하세요.")
                 if "string" in (left, right):
                     raise CompileError(expr.token, "문자열 산술·연결 연산은 아직 지원하지 않습니다.")
                 if expr.value == "MOD" and (left != "int" or right != "int"):
@@ -426,6 +456,8 @@ def analyze(program: Program) -> None:
 
         def assignable(target: str, expr: Expr) -> None:
             actual = expression(expr)
+            if "int_array" in (target, actual):
+                raise CompileError(expr.token, "배열 전체의 복사·대입·인자 전달은 지원하지 않습니다. 원소를 선택하세요.")
             if (target == "string") != (actual == "string"):
                 raise CompileError(expr.token, "문자열과 숫자 사이의 자동 변환은 아직 지원하지 않습니다.")
 
@@ -436,8 +468,18 @@ def analyze(program: Program) -> None:
 
         def numeric(expr: Expr) -> str:
             actual = expression(expr)
-            if actual == "string":
+            if actual not in ("int", "real"):
                 raise CompileError(expr.token, "분기·반복 조건은 정수 또는 실수여야 합니다.")
+            return actual
+
+        def lvalue(expr: Expr) -> str:
+            if expr.kind == "remaining":
+                raise CompileError(expr.token, "뿌야!는 읽기 전용 남은 횟수이며 대입하거나 입력받을 수 없습니다.")
+            if expr.kind not in ("variable", "index"):
+                raise CompileError(expr.token, "입력·대입 대상은 선언된 변수 또는 배열 원소여야 합니다.")
+            actual = expression(expr)
+            if actual == "int_array":
+                raise CompileError(expr.token, "배열 전체에는 입력·대입할 수 없습니다. 인덱스로 원소를 선택하세요.")
             return actual
 
         def visit(statements: list[Statement]) -> None:
@@ -468,23 +510,36 @@ def analyze(program: Program) -> None:
                     if statement.kind == "continue" and loops[-1].kind == "repeat":
                         loops[-1].needs_continue = True
                         statement.binding = loops[-1].binding
-                elif statement.kind == "declare":
+                elif statement.kind in ("declare", "array_declare"):
                     if statement.name.text in scopes[-1]:
                         raise CompileError(statement.name, "같은 블록에서 변수를 중복 선언할 수 없습니다.")
-                    assignable(statement.type, statement.expr)
+                    if statement.kind == "array_declare":
+                        if expression(statement.expr) != "int":
+                            raise CompileError(statement.expr.token, "배열 크기는 정수여야 합니다.")
+                    else:
+                        assignable(statement.type, statement.expr)
                     counter += 1
                     statement.binding = f"us_v{counter}"
                     scopes[-1][statement.name.text] = (statement.type, statement.binding)
                 elif statement.kind in ("assign", "input"):
-                    statement.type, statement.binding = lookup(statement.name)
-                    if statement.expr is not None:
+                    statement.type = lvalue(statement.target)
+                    if statement.kind == "input" and statement.type != "string":
+                        raise CompileError(statement.target.token, "하아?는 문자열 입력입니다. 정수·실수 입력에는 냠?을 사용하세요.")
+                    if statement.kind == "assign":
                         assignable(statement.type, statement.expr)
+                elif statement.kind == "number_input":
+                    for target in statement.targets:
+                        if lvalue(target) not in ("int", "real"):
+                            raise CompileError(target.token, "냠?는 숫자 입력입니다. 문자열 입력에는 하아?를 사용하세요.")
                 elif statement.kind in ("output", "call"):
-                    expression(statement.expr)
+                    if expression(statement.expr) == "int_array":
+                        raise CompileError(statement.expr.token, "배열 전체를 출력할 수 없습니다. 원소를 선택하세요.")
 
         visit(function.body)
         if function.result is not None:
             function.type = expression(function.result)
+            if function.type == "int_array":
+                raise CompileError(function.result.token, "배열 전체를 반환할 수 없습니다. 원소를 반환하세요.")
         states[function.name] = "done"
 
     for function in program.functions:
@@ -503,8 +558,9 @@ def generate_c(program: Program, path: str) -> str:
               f"const char *us_source = {c_string(path)};"]
     counter = 0
     depth = 1
-    ctype = {"int": "int64_t", "real": "double", "string": "us_string"}
+    ctype = {"int": "int64_t", "real": "double", "string": "us_string", "int_array": "us_array *"}
     families = {"int": "i", "real": "r", "string": "s"}
+    loop_marks: list[str] = []
     for function in program.functions:
         parameters = ", ".join(f"{ctype[p.type]} {p.binding}" for p in function.params) or "void"
         output.append(f"{ctype[function.type]} {function.binding}({parameters});")
@@ -527,6 +583,12 @@ def generate_c(program: Program, path: str) -> str:
             return f"((int64_t)({expr.value}))" if expr.type == "int" else expr.value
         if expr.kind in ("variable", "remaining"):
             return expr.binding
+        if expr.kind == "index":
+            address = lvalue(expr)
+            counter += 1
+            name = f"us_t{counter}"
+            emit(f"int64_t {name} = {address};")
+            return name
         if expr.kind == "call":
             arguments = []
             for argument, target in zip(expr.args, expr.arg_types):
@@ -549,6 +611,28 @@ def generate_c(program: Program, path: str) -> str:
         emit(f"{ctype[expr.type]} {name} = us_{family}_{expr.value.lower()}({left}, {right}, {expr.token.line}, {expr.token.column});")
         return name
 
+    def lvalue(expr: Expr) -> str:
+        nonlocal counter
+        if expr.kind == "variable":
+            return expr.binding
+        index = expression(expr.left)
+        counter += 1
+        name = f"us_p{counter}"
+        emit(f"int64_t *{name} = us_array_at({expr.binding}, {index}, {expr.token.line}, {expr.token.column});")
+        return f"(*{name})"
+
+    def scoped(statements: list[Statement], loop: bool = False) -> None:
+        nonlocal counter
+        counter += 1
+        mark = f"us_mark{counter}"
+        emit(f"us_array *{mark} = us_arrays;")
+        if loop:
+            loop_marks.append(mark)
+        visit(statements)
+        if loop:
+            loop_marks.pop()
+        emit(f"us_array_cleanup(&us_arrays, {mark});")
+
     def visit(statements: list[Statement]) -> None:
         nonlocal depth, counter
         for statement in statements:
@@ -556,7 +640,7 @@ def generate_c(program: Program, path: str) -> str:
             if kind == "block":
                 emit("{")
                 depth += 1
-                visit(statement.body)
+                scoped(statement.body)
                 depth -= 1
                 emit("}")
             elif kind == "sign":
@@ -568,7 +652,7 @@ def generate_c(program: Program, path: str) -> str:
                     comparison = {"POSITIVE": ">", "ZERO": "==", "NEGATIVE": "<"}[branch.token.kind]
                     emit(f"{'if' if index == 0 else 'else if'} ({name} {comparison} 0) {{")
                     depth += 1
-                    visit(branch.body)
+                    scoped(branch.body)
                     depth -= 1
                     emit("}")
             elif kind == "count":
@@ -580,7 +664,7 @@ def generate_c(program: Program, path: str) -> str:
                 emit(f"int64_t {name} = us_count({value}, {statement.token.line}, {statement.token.column});")
                 emit(f"for (; {name} > 0; --{name}) {{")
                 depth += 1
-                visit(statement.body)
+                scoped(statement.body, loop=True)
                 depth -= 1
                 emit("}")
                 depth -= 1
@@ -590,7 +674,7 @@ def generate_c(program: Program, path: str) -> str:
                 depth += 1
                 emit("{")
                 depth += 1
-                visit(statement.body)
+                scoped(statement.body, loop=True)
                 depth -= 1
                 emit("}")
                 if statement.needs_continue:
@@ -600,18 +684,30 @@ def generate_c(program: Program, path: str) -> str:
                 depth -= 1
                 emit("}")
             elif kind == "break":
+                emit(f"us_array_cleanup(&us_arrays, {loop_marks[-1]});")
                 emit("break;")
             elif kind == "continue":
+                emit(f"us_array_cleanup(&us_arrays, {loop_marks[-1]});")
                 emit(f"goto {statement.binding}_test;" if statement.binding else "continue;")
+            elif kind == "array_declare":
+                value = expression(statement.expr)
+                emit(f"us_array *{statement.binding} = us_array_new(&us_arrays, {value}, {statement.token.line}, {statement.token.column});")
+                emit(f"(void){statement.binding};")
             elif kind in ("declare", "assign"):
+                destination = statement.binding if kind == "declare" else lvalue(statement.target)
                 value = expression(statement.expr)
                 value = converted(statement.type, statement.expr, value)
                 prefix = ctype[statement.type] + " " if kind == "declare" else ""
-                emit(f"{prefix}{statement.binding} = {value};")
-                emit(f"(void){statement.binding};")
+                emit(f"{prefix}{destination} = {value};")
+                if kind == "declare":
+                    emit(f"(void){statement.binding};")
             elif kind == "input":
-                family = families[statement.type]
-                emit(f"{statement.binding} = us_read_{family}({statement.token.line}, {statement.token.column});")
+                emit(f"{lvalue(statement.target)} = us_read_s({statement.token.line}, {statement.token.column});")
+            elif kind == "number_input":
+                for target in statement.targets:
+                    destination = lvalue(target)
+                    family = families[target.type]
+                    emit(f"{destination} = us_read_{family}({target.token.line}, {target.token.column});")
             elif kind == "output":
                 value = expression(statement.expr)
                 family = families[statement.expr.type]
@@ -624,11 +720,18 @@ def generate_c(program: Program, path: str) -> str:
         return_type = "int" if function is program.main else ctype[function.type]
         parameters = ", ".join(f"{ctype[p.type]} {p.binding}" for p in function.params) or "void"
         output.append(f"{return_type} {function.binding}({parameters}) {{")
+        emit("us_array *us_arrays = NULL;")
         for parameter in function.params:
             emit(f"(void){parameter.binding};")
         visit(function.body)
         value = expression(function.result) if function.result is not None else "0"
-        emit(f"return {value};")
+        if function is program.main:
+            emit("us_array_cleanup(&us_arrays, NULL);")
+            emit("return 0;")
+        else:
+            emit(f"{return_type} us_result = {value};")
+            emit("us_array_cleanup(&us_arrays, NULL);")
+            emit("return us_result;")
         output.append("}")
     return "\n".join(output) + "\n"
 

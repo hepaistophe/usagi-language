@@ -14,6 +14,7 @@ async function main() {
   fs.mkdirSync(path.join(workspace, '.vscode'), { recursive: true });
   fs.writeFileSync(path.join(workspace, '.vscode', 'settings.json'), JSON.stringify({ 'usagi.pythonPath': python, 'usagi.checkOnType': true }));
   fs.copyFileSync(path.resolve(extension, '..', 'usagi-compiler/examples/feeding_arguments.usagi'), path.join(workspace, 'feeding_arguments.usagi'));
+  fs.copyFileSync(path.resolve(extension, '..', 'usagi-compiler/examples/arrays_and_input.usagi'), path.join(workspace, 'arrays_and_input.usagi'));
   await runTests({ vscodeExecutablePath: code,
     extensionDevelopmentPath: process.env.USAGI_TEST_EXTENSION_PATH || extension,
     extensionTestsPath: path.join(extension, 'test', 'suite', 'index.js'),

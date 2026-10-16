@@ -11,6 +11,7 @@ dist/
 
 # Distribute install packages through GitHub Releases.
 *.vsix
+*.sha256
 
 # Local editor and environment settings
 .vscode/

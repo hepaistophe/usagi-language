@@ -1,10 +1,10 @@
-# 우사기 랭귀지 · Usagi Language 0.5.0
+# 우사기 랭귀지 · Usagi Language 1.0.0
 
-`.usagi` 파일을 VS Code에서 작성하고 실행하는 확장입니다. 우사기 컴파일러 0.5.0이 포함되어 있어 별도의 컴파일러 프로젝트를 열 필요가 없습니다.
+`.usagi` 파일을 VS Code에서 작성하고 실행하는 확장입니다. 우사기 컴파일러 1.0.0이 포함되어 있어 별도의 컴파일러 프로젝트를 열 필요가 없습니다.
 
 ## 설치
 
-[GitHub Releases](https://github.com/hepaistophe/usagi-language/releases/tag/v0.5.0)에서 `usagi-language-0.5.0.vsix`를 다운로드합니다. VS Code의 확장 화면에서 `…` → **VSIX에서 설치**를 선택하고 다운로드한 파일을 고릅니다. 설치 후 `.usagi` 파일을 열면 언어가 **Usagi**로 표시됩니다.
+[GitHub v1.0.0 Releases](https://github.com/hepaistophe/usagi-language/releases/tag/v1.0.0)에서 `usagi-language-1.0.0.vsix`를 다운로드합니다. VS Code의 확장 화면에서 `…` → **VSIX에서 설치**를 선택하고 다운로드한 파일을 고릅니다. 설치 후 `.usagi` 파일을 열면 언어가 **Usagi**로 표시됩니다.
 
 Windows x64 / VS Code 1.141.1에서 검증했습니다. 지원 범위는 VS Code 1.90 이상인 데스크톱 확장 호스트이며, 브라우저용 VS Code에서는 실행할 수 없습니다.
 
@@ -37,6 +37,14 @@ Python 자동 탐색이 안 되면 VS Code 설정의 **Usagi: Python Path**에 `
 
 `usagi-main`, `usagi-function`, `usagi-call`, `usagi-sign`, `usagi-count`, `usagi-repeat`를 입력하고 코드 조각을 선택하면 기본 틀을 넣을 수 있습니다. 정수·실수·문자열·입출력 조각도 포함됩니다. 키워드 위에 마우스를 올리면 설명을 볼 수 있습니다.
 
+## 새 입력·배열·개행
+
+`냠? 숫자변수, 숫자변수 야하!`는 각 변수형에 따라 정수·실수를 읽습니다. 대상 사이 쉼표는 소스 문법이고 실제 입력은 공백·탭·줄바꿈으로 구분합니다. `하아? 문자열변수 야하!`는 공백을 포함한 한 줄입니다. 숫자 줄에 아직 읽지 않은 값이 있으면 문자열 입력으로 전환할 수 없습니다.
+
+`야얏! 크기 이름 야하!`는 0 초기화한 정수 배열입니다. `인덱스 이름`으로 원소를 읽거나 대입하며 인덱스는 0부터 시작합니다. 크기·인덱스 범위를 검사합니다. 문자열 리터럴 안의 `우이!`는 개행입니다. 숫자 입력에 쓰던 기존 `하아?`는 `냠?`로 수정하세요.
+
+코드 조각: `usagi-array`, `usagi-element`, `usagi-input`, `usagi-string-input`, `usagi-newline`.
+
 ## 냠!으로 인자를 먹이기
 
 ```usagi
@@ -57,7 +65,7 @@ Python 자동 탐색이 안 되면 VS Code 설정의 **Usagi: Python Path**에 `
 
 ## 배포 파일과 개발 소스
 
-소스와 VSIX는 [GitHub 저장소](https://github.com/hepaistophe/usagi-language)와 Releases로 배포합니다. VSIX의 게시자 식별자 `usagi-local`은 미리보기용이며 Marketplace에 등록된 게시자라는 뜻은 아닙니다. Marketplace 공개 게시를 위한 게시자 ID와 소스 라이선스 결정은 별도 단계입니다.
+소스와 VSIX는 [GitHub 저장소](https://github.com/hepaistophe/usagi-language)와 Releases로 배포합니다. VSIX의 게시자 식별자 `usagi-local`은 GitHub VSIX 배포에 사용하는 식별자이며 Marketplace에 등록된 게시자라는 뜻은 아닙니다. Marketplace 공개 게시를 위한 게시자 ID와 소스 라이선스 결정은 별도 단계입니다.
 
 개발 소스에서 패키징하려면 상위 폴더에 `usagi-compiler`와 언어 표준 문서를 함께 둔 상태에서 실행합니다.
 
@@ -72,10 +80,12 @@ npm run package
 
 ## 검증 결과
 
-- 컴파일러 Python 테스트 106개 통과. 정수·실수·문자열 인자, 값 복사, 변환, 평가 순서, 중첩 호출과 기존 문법을 검증했습니다.
-- 확장 Node/TextMate 테스트 9개 통과. 구문 강조, 문자열 내부 키워드, Python 탐색, 안전한 인자 전달과 UTF-16 진단 위치를 검증했습니다.
+- 컴파일러 Python 테스트 123개 통과. 정수·실수·문자열 인자, 값 복사, 변환, 평가 순서, 중첩 호출과 기존 문법을 검증했습니다.
+- 확장 Node/TextMate 테스트 11개 통과. 구문 강조, 문자열 내부 키워드, Python 탐색, 안전한 인자 전달과 UTF-16 진단 위치를 검증했습니다.
 - VSIX를 분리된 확장 설치 폴더에 실제 설치했습니다.
 - 설치된 VSIX로 실제 VS Code 확장 호스트를 실행해 파일 인식, 명령 등록, 도움말, 저장 전 오류 표시·수정 후 해제, C 생성, 실행 파일 빌드, 터미널 실행과 새 파일 생성을 확인했습니다. 빌드된 인자 예제의 출력은 `5`, `우사기!`, 종료 코드는 0입니다.
 - 테스트는 별도 VS Code 복사본·프로필에서 수행했습니다. 실제 한글 키보드 입력·색상 테마의 눈으로 보는 검증, 다른 운영체제와 Marketplace 게시까지 검증한 것은 아닙니다.
 
 공식 참고: [VSIX 패키징과 설치](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#packaging-extensions), [구문 강조](https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide).
+
+정식 문법 표준과 컴파일러·확장 버전은 모두 1.0.0입니다. 확정된 동작과 미지원 범위는 포함된 언어 표준 문서를 따릅니다.

@@ -44,7 +44,7 @@ test('Diagnostics convert code-point columns to VS Code UTF-16 offsets', () => {
 test('Package bundles Python, runtime, grammar, snippets and stable language version', () => {
   const root = path.resolve(__dirname, '..');
   const manifest = require('../package.json');
-  assert.equal(manifest.version, '0.5.0');
+  assert.equal(manifest.version, '1.0.0');
   for (const file of ['compiler/run_usagi.py', 'compiler/usagi/compiler.py', 'compiler/usagi/runtime.c', 'syntaxes/usagi.tmLanguage.json', 'snippets/usagi.json', 'docs/USAGI_LANGUAGE_SPEC.md']) {
     assert(fs.statSync(path.join(root, file)).isFile(), file);
   }

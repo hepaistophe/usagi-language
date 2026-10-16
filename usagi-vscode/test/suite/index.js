@@ -70,6 +70,24 @@ async function run() {
   await task('usagi.runFile');
   console.log('HOST PASS: emit C, build native executable, verified output and terminal run');
 
+  const newDocument = await vscode.workspace.openTextDocument(path.join(workspace, 'arrays_and_input.usagi'));
+  const newEditor = await vscode.window.showTextDocument(newDocument);
+  const newSource = newDocument.getText();
+  assert.equal((await vscode.commands.executeCommand('usagi.checkFile'))?.ok, true);
+  const arrayLine = newSource.split('\n').findIndex(line => line.includes('야얏!'));
+  const arrayHover = await vscode.commands.executeCommand('vscode.executeHoverProvider', newDocument.uri, new vscode.Position(arrayLine, newDocument.lineAt(arrayLine).text.indexOf('야얏!') + 1));
+  assert(arrayHover.length > 0);
+  await newEditor.edit(builder => builder.replace(new vscode.Range(0, 0, newDocument.lineCount, 0), newSource.replace('냠? 하치와레: 사람수, 하치와레: 평균점수 야하!', '하아? 하치와레: 사람수 야하!')));
+  await until(() => vscode.languages.getDiagnostics(newDocument.uri).some(item => item.message.includes('하아?는 문자열')));
+  await newEditor.edit(builder => builder.replace(new vscode.Range(0, 0, newDocument.lineCount, 0), newSource));
+  await until(() => vscode.languages.getDiagnostics(newDocument.uri).length === 0);
+  await task('usagi.buildFile');
+  const newExecutable = path.join(workspace, 'build', `arrays_and_input${process.platform === 'win32' ? '.exe' : '.out'}`);
+  const newNative = spawnSync(newExecutable, [], { input: '3 82.5\n  우사기 좋아  \n', encoding: 'utf8', timeout: 5000, windowsHide: true });
+  assert.equal(newNative.status, 0, newNative.stderr);
+  assert.equal(newNative.stdout.replaceAll('\r\n', '\n'), '82\n  우사기 좋아  \n안녕\n우사기!\n');
+  console.log('HOST PASS: 0.6 input diagnostics, array hover, build and mixed numeric/string input with newline output');
+
   await vscode.commands.executeCommand('usagi.newFile');
   assert.equal(vscode.window.activeTextEditor.document.languageId, 'usagi');
   assert(vscode.window.activeTextEditor.document.isUntitled);

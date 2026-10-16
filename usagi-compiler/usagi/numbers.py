@@ -1,4 +1,4 @@
-"""The finite, unambiguous literal vocabulary specified for Usagi v0.5."""
+"""The finite, unambiguous literal vocabulary specified for Usagi v1.0."""
 
 from itertools import product
 

@@ -312,18 +312,18 @@ class NativeTests(unittest.TestCase):
             "scopes": (ROOT / "examples/places_and_scopes.usagi").read_text(encoding="utf-8"),
             "input": (ROOT / "examples/input_plus_one.usagi").read_text(encoding="utf-8"),
             "real": (ROOT / "examples/real_input.usagi").read_text(encoding="utf-8"),
-            "echo_int": program("얏! 하치와레: 야 뿌 야하! 하아? 하치와레: 야 야하! 우~라~ 하치와레: 야 야하!"),
-            "echo_real": program("핫! 하치와레: 야 뿌 야하! 하아? 하치와레: 야 야하! 우~라~ 하치와레: 야 야하!"),
+            "echo_int": program("얏! 하치와레: 야 뿌 야하! 냠? 하치와레: 야 야하! 우~라~ 하치와레: 야 야하!"),
+            "echo_real": program("핫! 하치와레: 야 뿌 야하! 냠? 하치와레: 야 야하! 우~라~ 하치와레: 야 야하!"),
             "mixed": program("핫! 하치와레: 야 뿌르 야하! 우~라~ 하치와레: 야 하! 뿌.뿌릇 야하! 우~라~ 릇뿌뿌.뿌릇 야하!"),
             "functions": (ROOT / "examples/functions.usagi").read_text(encoding="utf-8"),
             "left_assoc": program("우~라~ 뿌릇뿌릇 하아! 뿌르르르 하아! 뿌르르 야하!"),
         }
         for kind, token in (("add", "하!"), ("sub", "하아!"), ("mul", "하핫!"), ("div", "푸루!"), ("mod", "푸루루!")):
-            fixtures[kind] = program(f"얏! 하치와레: 야 뿌 야하! 얏! 하치와레: 야야 뿌 야하! 하아? 하치와레: 야 야하! 하아? 하치와레: 야야 야하! 우~라~ 하치와레: 야 {token} 하치와레: 야야 야하!")
-        fixtures["real_mul"] = program("핫! 하치와레: 야 뿌 야하! 하아? 하치와레: 야 야하! 우~라~ 하치와레: 야 하핫! 뿌르르 야하!")
+            fixtures[kind] = program(f"얏! 하치와레: 야 뿌 야하! 얏! 하치와레: 야야 뿌 야하! 냠? 하치와레: 야 야하! 냠? 하치와레: 야야 야하! 우~라~ 하치와레: 야 {token} 하치와레: 야야 야하!")
+        fixtures["real_mul"] = program("핫! 하치와레: 야 뿌 야하! 냠? 하치와레: 야 야하! 우~라~ 하치와레: 야 하핫! 뿌르르 야하!")
         fixtures["real_div"] = program("우~라~ 뿌르.뿌 푸루! 뿌 야하!")
-        fixtures["convert"] = program("핫! 하치와레: 야 뿌 야하! 하아? 하치와레: 야 야하! 얏! 하치와레: 야야 뿌 야하! 하치와레: 야야 야~하! 하치와레: 야 야하! 우~라~ 하치와레: 야야 야하!")
-        fixtures["call_order"] = ("우나! 하치와레: 읽기 얏! 하치와레: 야 뿌 야하! 하아? 하치와레: 야 야하! 우~나! 하치와레: 야\n"
+        fixtures["convert"] = program("핫! 하치와레: 야 뿌 야하! 냠? 하치와레: 야 야하! 얏! 하치와레: 야야 뿌 야하! 하치와레: 야야 야~하! 하치와레: 야 야하! 우~라~ 하치와레: 야야 야하!")
+        fixtures["call_order"] = ("우나! 하치와레: 읽기 얏! 하치와레: 야 뿌 야하! 냠? 하치와레: 야 야하! 우~나! 하치와레: 야\n"
                                   + program("우~라~ 하치와레: 읽기 우라! 우라라! 하아! 하치와레: 읽기 우라! 우라라! 야하!"))
         fixtures["standalone_call"] = (program("하치와레: 소리 우라! 우라라! 야하! 우~라~ 뿌르 야하!")
                                        + "우나! 하치와레: 소리 우~라~ 뿌릇 야하! 우~나! 뿌\n")
@@ -452,10 +452,12 @@ class NativeTests(unittest.TestCase):
         self.assert_runtime_error("echo_int", str(MIN - 1) + "\n", "out of range")
 
     def test_invalid_input_and_eof(self):
-        for text in ("abc\n", "1 2\n", "3.2\n", "\n", "0x10\n", "뿌르\n", "1e2\n"):
+        for text in ("abc\n", "3.2\n", "0x10\n", "뿌르\n", "1e2\n"):
             with self.subTest(text=text):
                 self.assert_runtime_error("echo_int", text, "expected a decimal integer")
         self.assert_runtime_error("echo_int", "", "unexpected end of input")
+        self.assert_runtime_error("echo_int", "\n", "unexpected end of input")
+        self.assert_output("echo_int", "1 2\n", "1\n")
         self.assert_runtime_error("echo_int", "1\0\n", "NUL byte")
         self.assert_runtime_error("echo_int", "1" * 4096 + "\n", "input line too long")
         self.assert_output("echo_int", "  +42  ", "42\n")

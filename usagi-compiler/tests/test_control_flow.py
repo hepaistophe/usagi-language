@@ -111,9 +111,9 @@ class ControlFlowNativeTests(unittest.TestCase):
         cls.binaries = {}
         fixtures = {name: (ROOT / "examples" / f"{name}.usagi").read_text(encoding="utf-8")
                     for name in ("three_reactions", "countdown", "repeat_input", "skip_and_stop")}
-        fixtures["count_input"] = program("얏! 야 뿌 야하! 하아? 야 야하! 우쨔? 야 " + output("뿌야!") + " 우쨔!")
-        fixtures["sign_real"] = program("핫! 야 뿌 야하! 하아? 야 야하! 갸웃? 야 우우... " + output("릇뿌뿌르") + " 하아... " + output("뿌") + " 야호! " + output("뿌르") + " 갸웃!")
-        fixtures["partial"] = program("얏! 야 뿌 야하! 하아? 야 야하! 갸웃? 야 야호! " + output("뿌르") + " 갸웃! " + output("뿌르르"))
+        fixtures["count_input"] = program("얏! 야 뿌 야하! 냠? 야 야하! 우쨔? 야 " + output("뿌야!") + " 우쨔!")
+        fixtures["sign_real"] = program("핫! 야 뿌 야하! 냠? 야 야하! 갸웃? 야 우우... " + output("릇뿌뿌르") + " 하아... " + output("뿌") + " 야호! " + output("뿌르") + " 갸웃!")
+        fixtures["partial"] = program("얏! 야 뿌 야하! 냠? 야 야하! 갸웃? 야 야호! " + output("뿌르") + " 갸웃! " + output("뿌르르"))
         fixtures["snapshot"] = program("얏! 야 뿌르르르 야하! 우쨔? 야 야 야~하! 뿌 야하! " + output("뿌야!") + " 우쨔! " + output("야"))
         fixtures["nested"] = program("우쨔? 뿌르르 " + output("뿌야!") + " 우쨔? 뿌야! " + output("뿌야!") + " 우쨔! " + output("뿌야!") + " 우쨔!")
         fixtures["repeat_once"] = program("푸루룻! " + output("뿌르") + " 푸루룻? 뿌")
@@ -122,7 +122,7 @@ class ControlFlowNativeTests(unittest.TestCase):
         fixtures["inner_break"] = program("우쨔? 뿌르르 우쨔? 뿌르르르 " + output("뿌야!") + " 삐익! 야하! 우쨔! " + output("뿌야!") + " 우쨔!")
         fixtures["nested_sign"] = program("갸웃? 뿌 야호! " + output("뿌릇") + " 하아... 갸웃? 릇뿌뿌르 우우... " + output("뿌르르") + " 갸웃! " + output("뿌르르르") + " 우우... " + output("뿌릇") + " 갸웃!")
         fixtures["scope"] = program("얏! 야 뿌릇 야하! 우쨔? 뿌르르 얏! 야 뿌르 야하! " + output("야") + " 우쨔! 갸웃? 뿌 하아... 얏! 야 뿌르르 야하! " + output("야") + " 갸웃! " + output("야"))
-        reader = "우나! 하치와레: 읽기 얏! 야 뿌 야하! 하아? 야 야하! 우~나! 야\n"
+        reader = "우나! 하치와레: 읽기 얏! 야 뿌 야하! 냠? 야 야하! 우~나! 야\n"
         fixtures["sign_once"] = reader + program("갸웃? 하치와레: 읽기 우라! 우라라! 야호! " + output("뿌르") + " 하아... " + output("뿌") + " 우우... " + output("릇뿌뿌르") + " 갸웃! " + output("하치와레: 읽기 우라! 우라라!"))
         fixtures["repeat_retest"] = reader + program("푸루룻! " + output("뿌르") + " 휙! 야하! 푸루룻? 하치와레: 읽기 우라! 우라라!")
         fixtures["count_once"] = reader + program("우쨔? 하치와레: 읽기 우라! 우라라! " + output("뿌야!") + " 우쨔! " + output("하치와레: 읽기 우라! 우라라!"))

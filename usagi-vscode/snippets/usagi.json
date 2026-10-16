@@ -9,5 +9,9 @@
   "실수 변수": { "prefix": ["usagi-real", "실수"], "body": "핫! ${1:야야} ${2:뿌.뿌릇} 야하!$0" },
   "문자열 변수": { "prefix": ["usagi-string", "문자열"], "body": "하치와레! 하치와레: ${1:내용} 하치! ${2:안녕!} 와레! 야하!$0" },
   "출력": { "prefix": ["usagi-print", "출력"], "body": "우~라~ ${1:야} 야하!$0" },
-  "입력": { "prefix": ["usagi-input", "입력"], "body": "하아? ${1:야} 야하!$0" }
+  "숫자 입력": { "prefix": ["usagi-input", "usagi-number-input", "숫자입력"], "body": "냠? ${1:야}, ${2:야야} 야하!$0" },
+  "문자열 입력": { "prefix": ["usagi-string-input", "문자열입력"], "body": "하아? 하치와레: ${1:내용} 야하!$0" },
+  "정수 배열": { "prefix": ["usagi-array", "정수배열"], "body": "야얏! ${1:뿌릇} 하치와레: ${2:점수} 야하!$0" },
+  "배열 원소": { "prefix": ["usagi-element", "배열원소"], "body": "${1:뿌} 하치와레: ${2:점수}$0" },
+  "개행": { "prefix": ["usagi-newline", "개행"], "body": "우이!$0", "description": "문자열 안에 삽입하는 개행" }
 }

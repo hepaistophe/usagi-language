@@ -22,6 +22,40 @@ _Noreturn void us_fail(const char *message, int line, int column) {
     exit(2);
 }
 
+/* Function-owned arrays; scope checkpoints also handle break and continue. */
+typedef struct us_array {
+    int64_t length;
+    int64_t *data;
+    struct us_array *previous;
+} us_array;
+
+us_array *us_array_new(us_array **owner, int64_t length, int l, int c) {
+    if (length < 0) us_fail("negative array size", l, c);
+    if ((uint64_t)length > SIZE_MAX / sizeof(int64_t)) us_fail("array size out of range", l, c);
+    us_array *array = malloc(sizeof(*array));
+    if (!array) us_fail("array allocation failed", l, c);
+    array->data = length ? calloc((size_t)length, sizeof(int64_t)) : NULL;
+    if (length && !array->data) { free(array); us_fail("array allocation failed", l, c); }
+    array->length = length;
+    array->previous = *owner;
+    *owner = array;
+    return array;
+}
+
+int64_t *us_array_at(us_array *array, int64_t index, int l, int c) {
+    if (index < 0 || index >= array->length) us_fail("array index out of bounds", l, c);
+    return &array->data[index];
+}
+
+void us_array_cleanup(us_array **owner, us_array *checkpoint) {
+    while (*owner != checkpoint) {
+        us_array *array = *owner;
+        *owner = array->previous;
+        free(array->data);
+        free(array);
+    }
+}
+
 int64_t us_real_to_int(double value, int l, int c) {
     /* (double)INT64_MAX rounds up to 2^63: use an exclusive upper bound. */
     if (!isfinite(value) || value < -9223372036854775808.0 || value >= 9223372036854775808.0)
@@ -156,10 +190,36 @@ int us_valid_decimal(const char *text, int real) {
     return *p == '\0';
 }
 
+/* Numeric reads share a cursor so a later read can consume the next field.
+   String reads begin on the next physical line once numeric fields are exhausted. */
+static char us_input_line[4096];
+static size_t us_input_cursor = 0;
+static int us_input_pending = 0;
+
+void us_read_token(char *buffer, int l, int c) {
+    for (;;) {
+        if (!us_input_pending) {
+            us_read_line(us_input_line, l, c);
+            us_input_cursor = 0;
+            us_input_pending = 1;
+        }
+        while (isspace((unsigned char)us_input_line[us_input_cursor])) ++us_input_cursor;
+        if (!us_input_line[us_input_cursor]) { us_input_pending = 0; continue; }
+        size_t count = 0;
+        while (us_input_line[us_input_cursor] && !isspace((unsigned char)us_input_line[us_input_cursor]))
+            buffer[count++] = us_input_line[us_input_cursor++];
+        buffer[count] = '\0';
+        size_t remainder = us_input_cursor;
+        while (isspace((unsigned char)us_input_line[remainder])) ++remainder;
+        if (!us_input_line[remainder]) us_input_pending = 0;
+        return;
+    }
+}
+
 int64_t us_read_i(int l, int c) {
     char buffer[4096];
     char *end;
-    us_read_line(buffer, l, c);
+    us_read_token(buffer, l, c);
     if (!us_valid_decimal(buffer, 0)) us_fail("expected a decimal integer", l, c);
     errno = 0;
     intmax_t value = strtoimax(buffer, &end, 10);
@@ -171,7 +231,7 @@ int64_t us_read_i(int l, int c) {
 double us_read_r(int l, int c) {
     char buffer[4096];
     char *end;
-    us_read_line(buffer, l, c);
+    us_read_token(buffer, l, c);
     if (!us_valid_decimal(buffer, 1)) us_fail("expected a decimal real number", l, c);
     errno = 0;
     double value = strtod(buffer, &end);
@@ -181,6 +241,7 @@ double us_read_r(int l, int c) {
 
 us_string us_read_s(int l, int c) {
     us_string value = {{0}};
+    if (us_input_pending) us_fail("unread numeric fields before string input", l, c);
     us_read_line(value.data, l, c);
     return value;
 }

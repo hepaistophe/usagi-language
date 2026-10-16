@@ -20,21 +20,23 @@ const words = [...keywordBlock.matchAll(/"([^"]+)":\s*"([^"]+)"/g)].map(match =>
 const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const alternation = entries => entries.map(escape).sort((a, b) => b.length - a.length).join('|');
 const all = alternation(words.map(item => item.word));
-const match = (name, kinds) => ({ name, match: `(?<!\\S)(?:${alternation(words.filter(item => kinds.includes(item.kind)).map(item => item.word))})(?!\\S)` });
+const match = (name, kinds) => ({ name, match: `(?<![^\\s,])(?:${alternation(words.filter(item => kinds.includes(item.kind)).map(item => item.word))})(?![^\\s,])` });
 const grammar = {
   name: 'Usagi', scopeName: 'source.usagi', fileTypes: ['usagi'], patterns: [
     { name: 'string.quoted.usagi', begin: '(?<!\\S)(하치!)', beginCaptures: { 1: { name: 'punctuation.definition.string.begin.usagi' } },
-      end: '(와레!)|(?=$)', endCaptures: { 1: { name: 'punctuation.definition.string.end.usagi' } } },
-    { name: 'entity.name.usagi', begin: '(?<!\\S)(하치와레:)[ \\t]+', beginCaptures: { 1: { name: 'storage.modifier.usagi' } },
-      end: `(?=$)|(?=[ \\t]+(?:(?:${all})(?!\\S)|야+(?!\\S)|[뿌르릇~.]+(?!\\S)|하치!))` },
+      end: '(와레!)|(?=$)', endCaptures: { 1: { name: 'punctuation.definition.string.end.usagi' } },
+      patterns: [{ name: 'constant.character.escape.usagi', match: '우이!' }] },
+    { name: 'entity.name.usagi', begin: '(?<![^\\s,])(하치와레:)[ \\t]+', beginCaptures: { 1: { name: 'storage.modifier.usagi' } },
+      end: `(?=$)|(?=,)|(?=[ \\t]+(?:(?:${all})(?![^\\s,])|야+(?![^\\s,])|[뿌르릇~.]+(?![^\\s,])|하치!))` },
     match('invalid.deprecated.usagi', ['OLD_STRING']),
-    match('storage.type.usagi', ['INT', 'REAL', 'STRING', 'CHAR']),
+    match('storage.type.usagi', ['INT', 'REAL', 'STRING', 'CHAR', 'INT_ARRAY']),
     match('keyword.operator.usagi', ['ADD', 'SUB', 'MUL', 'DIV', 'MOD', 'ASSIGN']),
     match('punctuation.section.usagi', ['LPAREN', 'RPAREN', 'OPEN', 'CLOSE', 'END']),
+    { name: 'punctuation.separator.usagi', match: ',' },
     match('constant.language.usagi', ['REMAINING']),
-    match('keyword.control.usagi', ['MAIN', 'MAIN_END', 'FUNCTION', 'RETURN', 'INPUT', 'OUTPUT', 'SIGN', 'SIGN_END', 'POSITIVE', 'ZERO', 'NEGATIVE', 'COUNT', 'COUNT_END', 'REPEAT', 'REPEAT_TEST', 'BREAK', 'CONTINUE', 'FEED', 'SWALLOW']),
-    { name: 'constant.numeric.usagi', match: '(?<!\\S)[뿌르릇~.]+(?!\\S)' },
-    { name: 'variable.language.usagi', match: '(?<!\\S)야+(?!\\S)' }
+    match('keyword.control.usagi', ['MAIN', 'MAIN_END', 'FUNCTION', 'RETURN', 'INPUT', 'NUMBER_INPUT', 'OUTPUT', 'SIGN', 'SIGN_END', 'POSITIVE', 'ZERO', 'NEGATIVE', 'COUNT', 'COUNT_END', 'REPEAT', 'REPEAT_TEST', 'BREAK', 'CONTINUE', 'FEED', 'SWALLOW']),
+    { name: 'constant.numeric.usagi', match: '(?<![^\\s,])[뿌르릇~.]+(?![^\\s,])' },
+    { name: 'variable.language.usagi', match: '(?<![^\\s,])야+(?![^\\s,])' }
   ]
 };
 fs.mkdirSync(path.join(root, 'syntaxes'), { recursive: true });
