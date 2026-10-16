@@ -1,0 +1,7 @@
+* text=auto
+*.py text eol=lf
+*.c text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf whitespace=-blank-at-eol
+*.usagi text eol=lf

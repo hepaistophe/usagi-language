@@ -1,0 +1,59 @@
+{
+  "name": "usagi-language",
+  "displayName": "우사기 랭귀지 · Usagi Language",
+  "description": "우사기 언어의 구문 강조, 코드 조각, 오류 검사, 실행과 빌드를 제공합니다.",
+  "version": "0.5.0",
+  "publisher": "usagi-local",
+  "license": "UNLICENSED",
+  "repository": { "type": "git", "url": "https://github.com/hepaistophe/usagi-language.git" },
+  "homepage": "https://github.com/hepaistophe/usagi-language#readme",
+  "bugs": { "url": "https://github.com/hepaistophe/usagi-language/issues" },
+  "engines": { "vscode": "^1.90.0" },
+  "categories": ["Programming Languages", "Snippets", "Other"],
+  "keywords": ["usagi", "우사기", "esolang", "korean"],
+  "main": "./src/extension.js",
+  "extensionKind": ["workspace"],
+  "activationEvents": ["onLanguage:usagi"],
+  "capabilities": { "untrustedWorkspaces": { "supported": "limited", "description": "구문 강조와 코드 조각을 제공하며 Python 실행·검사·빌드는 신뢰한 작업 영역에서만 사용합니다.", "restrictedConfigurations": ["usagi.pythonPath", "usagi.clangPath"] }, "virtualWorkspaces": false },
+  "contributes": {
+    "languages": [{ "id": "usagi", "aliases": ["Usagi", "우사기"], "extensions": [".usagi"], "configuration": "./language-configuration.json" }],
+    "grammars": [{ "language": "usagi", "scopeName": "source.usagi", "path": "./syntaxes/usagi.tmLanguage.json" }],
+    "snippets": [{ "language": "usagi", "path": "./snippets/usagi.json" }],
+    "commands": [
+      { "command": "usagi.runFile", "title": "우사기: 현재 파일 실행", "icon": "$(play)" },
+      { "command": "usagi.checkFile", "title": "우사기: 현재 파일 검사" },
+      { "command": "usagi.buildFile", "title": "우사기: 실행 파일 빌드" },
+      { "command": "usagi.emitC", "title": "우사기: C 코드 생성" },
+      { "command": "usagi.newFile", "title": "우사기: 새 프로그램 만들기" },
+      { "command": "usagi.openGuide", "title": "우사기: 문법 가이드 열기" }
+    ],
+    "menus": {
+      "editor/title": [{ "command": "usagi.runFile", "when": "resourceLangId == usagi && isWorkspaceTrusted", "group": "navigation" }],
+      "editor/context": [
+        { "command": "usagi.runFile", "when": "resourceLangId == usagi && isWorkspaceTrusted", "group": "usagi@1" },
+        { "command": "usagi.checkFile", "when": "resourceLangId == usagi && isWorkspaceTrusted", "group": "usagi@2" }
+      ]
+    },
+    "configuration": {
+      "title": "Usagi",
+      "properties": {
+        "usagi.pythonPath": { "type": "string", "default": "", "description": "Python 3.12 이상 실행 파일의 전체 경로. 비우면 py/python3/python을 탐색합니다. 명령행 인자는 넣지 않습니다." },
+        "usagi.clangPath": { "type": "string", "default": "", "description": "clang.exe의 전체 경로. 비우면 컴파일러가 자동 탐색합니다." },
+        "usagi.checkOnType": { "type": "boolean", "default": true, "description": "코드 편집 중 문법과 자료형을 검사합니다." }
+      }
+    }
+  },
+  "scripts": {
+    "prepare-bundle": "node scripts/prepare-bundle.js",
+    "test": "node --test test/unit.test.js test/grammar.test.js",
+    "test:host": "node test/run-host.js",
+    "vscode:prepublish": "node scripts/prepare-bundle.js",
+    "package": "vsce package --skip-license --out ../usagi-language-0.5.0.vsix"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.6.2",
+    "@vscode/test-electron": "^2.5.2",
+    "vscode-textmate": "^9.2.0",
+    "vscode-oniguruma": "^2.0.1"
+  }
+}
