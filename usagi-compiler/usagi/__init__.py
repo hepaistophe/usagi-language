@@ -1,3 +1,3 @@
-"""Usagi Language 1.0 reference compiler."""
+"""Usagi Language 1.1 reference compiler."""
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"

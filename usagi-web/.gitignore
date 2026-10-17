@@ -1,0 +1,10 @@
+!dist/
+!dist/**
+__pycache__/
+*.py[cod]
+node_modules/
+*.log
+.env
+.env.*
+.vercel/
+.vercel

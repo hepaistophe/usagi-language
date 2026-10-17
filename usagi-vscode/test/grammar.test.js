@@ -7,6 +7,15 @@ const textmate = require('vscode-textmate');
 const oniguruma = require('vscode-oniguruma');
 let grammar;
 
+test('1.1 string operators and write token terminate user names', () => {
+  const source = '우~라! 하치와레: 남은 병 시사! 모몽가! 우라! 야 우라라! 야하!';
+  assert(scopeAt(source, '우~라!').includes('keyword.control.usagi'));
+  for (const word of ['시사!', '모몽가!']) {
+    assert(scopeAt(source, word).includes('keyword.operator.usagi'));
+    assert(!scopeAt(source, word).includes('entity.name.usagi'));
+  }
+});
+
 test.before(async () => {
   const bytes = fs.readFileSync(require.resolve('vscode-oniguruma/release/onig.wasm'));
   await oniguruma.loadWASM(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));

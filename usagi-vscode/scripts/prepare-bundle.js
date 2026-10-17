@@ -30,11 +30,11 @@ const grammar = {
       end: `(?=$)|(?=,)|(?=[ \\t]+(?:(?:${all})(?![^\\s,])|야+(?![^\\s,])|[뿌르릇~.]+(?![^\\s,])|하치!))` },
     match('invalid.deprecated.usagi', ['OLD_STRING']),
     match('storage.type.usagi', ['INT', 'REAL', 'STRING', 'CHAR', 'INT_ARRAY']),
-    match('keyword.operator.usagi', ['ADD', 'SUB', 'MUL', 'DIV', 'MOD', 'ASSIGN']),
+    match('keyword.operator.usagi', ['ADD', 'SUB', 'MUL', 'DIV', 'MOD', 'ASSIGN', 'CONCAT', 'STRINGIFY']),
     match('punctuation.section.usagi', ['LPAREN', 'RPAREN', 'OPEN', 'CLOSE', 'END']),
     { name: 'punctuation.separator.usagi', match: ',' },
     match('constant.language.usagi', ['REMAINING']),
-    match('keyword.control.usagi', ['MAIN', 'MAIN_END', 'FUNCTION', 'RETURN', 'INPUT', 'NUMBER_INPUT', 'OUTPUT', 'SIGN', 'SIGN_END', 'POSITIVE', 'ZERO', 'NEGATIVE', 'COUNT', 'COUNT_END', 'REPEAT', 'REPEAT_TEST', 'BREAK', 'CONTINUE', 'FEED', 'SWALLOW']),
+    match('keyword.control.usagi', ['MAIN', 'MAIN_END', 'FUNCTION', 'RETURN', 'INPUT', 'NUMBER_INPUT', 'OUTPUT', 'WRITE', 'SIGN', 'SIGN_END', 'POSITIVE', 'ZERO', 'NEGATIVE', 'COUNT', 'COUNT_END', 'REPEAT', 'REPEAT_TEST', 'BREAK', 'CONTINUE', 'FEED', 'SWALLOW']),
     { name: 'constant.numeric.usagi', match: '(?<![^\\s,])[뿌르릇~.]+(?![^\\s,])' },
     { name: 'variable.language.usagi', match: '(?<![^\\s,])야+(?![^\\s,])' }
   ]

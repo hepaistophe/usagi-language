@@ -76,6 +76,28 @@ us_string us_string_literal(const char *text, int l, int c) {
     return value;
 }
 
+us_string us_s_concat(us_string a, us_string b, int l, int c) {
+    size_t first = strlen(a.data), second = strlen(b.data);
+    if (first + second > 4095) us_fail("string too long (maximum 4095 bytes)", l, c);
+    memcpy(a.data + first, b.data, second + 1);
+    return a;
+}
+
+us_string us_string_i(int64_t value, int l, int c) {
+    us_string result = {{0}};
+    if (snprintf(result.data, sizeof(result.data), "%" PRId64, value) < 0)
+        us_fail("failed to format integer", l, c);
+    return result;
+}
+
+us_string us_string_r(double value, int l, int c) {
+    us_string result = {{0}};
+    if (!isfinite(value)) us_fail("non-finite real result", l, c);
+    if (snprintf(result.data, sizeof(result.data), "%.15g", value) < 0)
+        us_fail("failed to format real", l, c);
+    return result;
+}
+
 int64_t us_i_add(int64_t a, int64_t b, int l, int c) {
     if ((b > 0 && a > INT64_MAX - b) || (b < 0 && a < INT64_MIN - b))
         us_fail("integer overflow", l, c);
@@ -246,7 +268,7 @@ us_string us_read_s(int l, int c) {
     return value;
 }
 
-void us_print_s(us_string value, int l, int c) {
+void us_output_s(us_string value, int newline, int l, int c) {
 #ifdef _WIN32
     DWORD mode;
     HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -254,14 +276,29 @@ void us_print_s(us_string value, int l, int c) {
         WCHAR wide[4097];
         int length = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, value.data, -1, wide, 4096);
         if (length == 0) us_fail("invalid UTF-8 string", l, c);
-        wide[length - 1] = L'\n';
+        --length;
+        if (newline) wide[length++] = L'\n';
+        if (length == 0) return;
         DWORD written;
         if (fflush(stdout) == EOF || !WriteConsoleW(output, wide, (DWORD)length, &written, NULL) || written != (DWORD)length)
             us_fail("failed to write console output", l, c);
         return;
     }
 #endif
-    if (fputs(value.data, stdout) == EOF || putchar('\n') == EOF || fflush(stdout) == EOF)
+    if (fputs(value.data, stdout) == EOF || (newline && putchar('\n') == EOF) || fflush(stdout) == EOF)
+        us_fail("failed to write output", l, c);
+}
+
+void us_print_s(us_string value, int l, int c) { us_output_s(value, 1, l, c); }
+void us_write_s(us_string value, int l, int c) { us_output_s(value, 0, l, c); }
+
+void us_write_i(int64_t value, int l, int c) {
+    if (printf("%" PRId64, value) < 0 || fflush(stdout) == EOF)
+        us_fail("failed to write output", l, c);
+}
+
+void us_write_r(double value, int l, int c) {
+    if (printf("%.15g", value) < 0 || fflush(stdout) == EOF)
         us_fail("failed to write output", l, c);
 }
 

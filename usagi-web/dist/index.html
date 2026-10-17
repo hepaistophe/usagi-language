@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffd84d">
+  <meta name="description" content="우사기 랭귀지 코드를 쓰고 바로 실행하세요. 설치 없이 사용하는 v1.1.0 온라인 편집기.">
+  <title>우사기 Playground</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.asm.wasm" as="fetch" type="application/wasm" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/pyodide/v314.0.7/full/python_stdlib.zip" as="fetch" crossorigin>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./terminal.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <a class="brand" href="./" aria-label="우사기 Playground 홈"><span class="mark" aria-hidden="true">!</span><span>우사기 <strong>Playground</strong></span><span class="version">v1.1.0</span></a>
+      <nav aria-label="프로젝트 링크"><a href="./language-spec.md" target="_blank" rel="noopener">문법 안내 ↗</a><a href="https://github.com/hepaistophe/usagi-language" target="_blank" rel="noopener">GitHub ↗</a></nav>
+    </header>
+    <main>
+      <div class="intro"><div><p class="eyebrow">WRITE. RUN. 야하!</p><h1>일단, 우사기!</h1><p>우사기 말로 쓰는 작은 프로그램. 바로 실행해 봐.</p></div><span class="bubble" aria-hidden="true">야~하!</span></div>
+      <section class="editor-panel" aria-labelledby="editor-title">
+        <div class="toolbar"><h2 id="editor-title"><span class="file-dot"></span>main.usagi</h2><div class="actions"><label class="sr-only" for="examples">예제 선택</label><select id="examples"><option value="hello">인사하기</option><option value="sum">숫자 두 개 더하기</option><option value="function">함수와 인자</option><option value="count">배열과 반복</option><option value="beer">99병의 맥주</option><option value="kevin">케빈 베이컨</option></select><button id="stop" class="stop" disabled>중지</button><button id="run" class="run"><span aria-hidden="true">▶</span> Run</button></div></div>
+        <div class="editor"><pre id="line-numbers" aria-hidden="true">1</pre><textarea id="code" aria-label="우사기 코드 편집기" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off"></textarea></div>
+        <div class="editor-footer"><span>Usagi Language</span><span><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 실행 · Tab 들여쓰기</span></div>
+      </section>
+      <section class="terminal-panel" aria-labelledby="terminal-title">
+        <div class="panel-heading"><h2 id="terminal-title"><span class="terminal-dots" aria-hidden="true">● ● ●</span> 터미널</h2><span id="status" role="status" class="status">준비됨</span></div>
+        <div id="terminal-scroll" class="terminal-scroll" tabindex="0" aria-label="터미널 기록"><pre id="stdout" class="empty">Run을 누르면 여기에서 입력하고 결과를 볼 수 있어요.</pre><pre id="stderr" hidden></pre></div>
+        <form id="terminal-form" autocomplete="off"><span class="prompt" aria-hidden="true">›</span><label for="stdin" class="sr-only">터미널 입력</label><textarea id="stdin" rows="1" spellcheck="false" disabled placeholder="Run을 눌러 프로그램을 실행하세요."></textarea><button id="send" disabled type="submit">전송 ↵</button><button id="eof" disabled type="button" title="입력 종료 (Ctrl+D)">EOF</button></form>
+        <div class="terminal-footer"><span id="timing">Enter 전송 · Shift+Enter 줄바꿈 · 여러 줄 붙여넣기 가능</span><div><button id="sample-input" class="text-button" hidden>예제 입력 붙여넣기</button><button id="copy" class="text-button" disabled>기록 복사</button></div></div>
+      </section>
+      <details class="guide"><summary>처음이라면, 이것만 알아두세요 <span aria-hidden="true">＋</span></summary><div><p><code>우사기!</code>로 시작해서 <code>!우사기</code>로 끝내요. 일반 문장 끝에는 <code>야하!</code>를 붙여요.</p><p><code>우~라~</code>는 출력, <code>냠?</code>는 숫자 입력, <code>하아?</code>는 한 줄 문자열 입력이에요. 터미널에는 일반 숫자와 글자를 적어요.</p><p><code>우~라!</code>는 줄바꿈 없는 출력, <code>시사!</code>는 문자열 연결, <code>모몽가! 우라! 숫자식 우라라!</code>는 숫자를 문자열로 바꿔요.</p><p>Run을 누른 뒤 터미널에 입력하고 Enter를 눌러요. 여러 줄을 붙여넣어 한 번에 보낼 수도 있어요. 코드는 이 브라우저에 자동 저장돼요. 첫 실행에는 실행 도구를 내려받느라 잠시 걸릴 수 있어요.</p><p>웹 실행 한도: 연산 시간 10초 (입력 대기 제외) · 출력 64 KiB · 배열 원소 합계 1,000,000개. 긴 프로그램은 로컬 컴파일러를 사용하세요.</p></div></details>
+    </main>
+    <footer><span>뿌르르. 생각한 대로 써 보자.</span><span>설치 없이 · 브라우저에서 실행</span></footer>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

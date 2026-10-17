@@ -1,0 +1,19 @@
+.terminal-panel{margin-top:20px;background:#222936;color:#e3e7df;border:1px solid #303746;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px #1f26330c}
+.terminal-panel .panel-heading{background:#292f3b;border-bottom:1px solid #39404c;height:46px}
+.terminal-dots{font-size:8px;letter-spacing:3px;color:#77808f;margin-right:12px}
+.terminal-scroll{height:200px;overflow:auto;padding:17px 20px;font:13px/24px var(--mono)}
+.terminal-scroll pre{font:inherit;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.terminal-scroll .empty{color:#8d98a9}
+.terminal-scroll .input-echo{color:#ffe081}
+.terminal-panel #stderr{color:#ffb2b6;background:#7b27342b;margin-top:8px;padding:10px}
+#terminal-form{display:flex;align-items:center;gap:10px;margin:0 17px;padding:10px 0;border-top:1px solid #3a4351}
+.prompt{font:22px var(--mono);color:var(--yellow);align-self:flex-start;padding-top:1px}
+#terminal-form #stdin{flex:1;min-width:0;width:auto;height:30px;min-height:30px;max-height:140px;resize:vertical;padding:3px 4px;border:0;outline:0;color:#ffe081;background:transparent;font:13px/24px var(--mono);box-shadow:none}
+#terminal-form #stdin::placeholder{color:#8894a5;font-size:12px}
+#terminal-form #stdin:focus{background:#ffffff04}
+#terminal-form button{padding:6px 10px;background:#3b4555;border:1px solid #566174;color:#edf0f4;font-size:11px;white-space:nowrap}
+#terminal-form #eof{color:#a8b3c3;background:transparent;border-color:#414b5b;font-family:var(--mono)}
+.terminal-footer{border-top:1px solid #39404c;background:#292f3b;color:#a1acbd;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 17px;font-size:10px;min-height:36px}
+.terminal-footer>div{display:flex;gap:18px;white-space:nowrap}
+.terminal-footer .text-button{color:#c1cad7}
+@media(max-width:700px){.terminal-panel{margin-top:15px}.terminal-scroll{padding:14px;height:210px;font-size:12px}.terminal-footer{align-items:flex-start;flex-direction:column;gap:6px;font-size:9px;padding:9px 14px}.terminal-footer>div{justify-content:space-between;width:100%}#terminal-form{margin:0 12px;gap:7px}#terminal-form #stdin{font-size:12px}#terminal-form #stdin::placeholder{font-size:10px}#terminal-form button{font-size:10px;padding:6px 8px}.terminal-dots{margin-right:6px}}

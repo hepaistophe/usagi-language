@@ -1,10 +1,10 @@
-# 우사기 랭귀지 · Usagi Language 1.0.0
+# 우사기 랭귀지 · Usagi Language 1.1.0
 
-`.usagi` 파일을 VS Code에서 작성하고 실행하는 확장입니다. 우사기 컴파일러 1.0.0이 포함되어 있어 별도의 컴파일러 프로젝트를 열 필요가 없습니다.
+`.usagi` 파일을 VS Code에서 작성하고 실행하는 확장입니다. 우사기 컴파일러 1.1.0이 포함되어 있어 별도의 컴파일러 프로젝트를 열 필요가 없습니다.
 
 ## 설치
 
-[GitHub v1.0.0 Releases](https://github.com/hepaistophe/usagi-language/releases/tag/v1.0.0)에서 `usagi-language-1.0.0.vsix`를 다운로드합니다. VS Code의 확장 화면에서 `…` → **VSIX에서 설치**를 선택하고 다운로드한 파일을 고릅니다. 설치 후 `.usagi` 파일을 열면 언어가 **Usagi**로 표시됩니다.
+[GitHub v1.1.0 Releases](https://github.com/hepaistophe/usagi-language/releases/tag/v1.1.0)에서 `usagi-language-1.1.0.vsix`를 다운로드합니다. VS Code의 확장 화면에서 `…` → **VSIX에서 설치**를 선택하고 다운로드한 파일을 고릅니다. 설치 후 `.usagi` 파일을 열면 언어가 **Usagi**로 표시됩니다.
 
 Windows x64 / VS Code 1.141.1에서 검증했습니다. 지원 범위는 VS Code 1.90 이상인 데스크톱 확장 호스트이며, 브라우저용 VS Code에서는 실행할 수 없습니다.
 
@@ -88,4 +88,4 @@ npm run package
 
 공식 참고: [VSIX 패키징과 설치](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#packaging-extensions), [구문 강조](https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide).
 
-정식 문법 표준과 컴파일러·확장 버전은 모두 1.0.0입니다. 확정된 동작과 미지원 범위는 포함된 언어 표준 문서를 따릅니다.
+정식 문법 표준과 컴파일러·확장 버전은 모두 1.1.0입니다. 확정된 동작과 미지원 범위는 포함된 언어 표준 문서를 따릅니다.

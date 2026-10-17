@@ -26,6 +26,7 @@ KEYWORDS = {
     "푸루룻!": "REPEAT", "푸루룻?": "REPEAT_TEST",
     "삐익!": "BREAK", "휙!": "CONTINUE",
     "냠!": "FEED", "꿀꺽!": "SWALLOW",
+    "우~라!": "WRITE", "시사!": "CONCAT", "모몽가!": "STRINGIFY",
 }
 
 REACTIONS = {"POSITIVE", "ZERO", "NEGATIVE"}
@@ -151,6 +152,7 @@ class Statement:
     needs_continue: bool = False
     target: Expr | None = None
     targets: list[Expr] = field(default_factory=list)
+    newline: bool = True
 
 
 @dataclass
@@ -317,8 +319,8 @@ class Parser:
                 self.take()
                 targets.append(self.expression())
             result = Statement(token, "number_input", targets=targets)
-        elif token.kind == "OUTPUT":
-            result = Statement(token, "output", expr=self.expression())
+        elif token.kind in ("OUTPUT", "WRITE"):
+            result = Statement(token, "output", expr=self.expression(), newline=token.kind == "OUTPUT")
         elif token.kind in ("BREAK", "CONTINUE"):
             result = Statement(token, token.kind.lower())
         elif token.kind in ("NAME", "SHORT_NAME", "NUMBER", "LPAREN", "REMAINING"):
@@ -365,6 +367,10 @@ class Parser:
                 left = self.call(token)
             else:
                 left = Expr(token, "variable", token.text)
+        elif token.kind == "STRINGIFY":
+            self.expect("LPAREN", "모몽가! 뒤에는 우라! 숫자식 우라라!가 필요합니다.")
+            left = Expr(token, "stringify", left=self.expression(), type="string")
+            self.expect("RPAREN", "모몽가!의 숫자식을 닫는 우라라!가 필요합니다.")
         elif token.kind == "LPAREN":
             left = self.expression()
             self.expect("RPAREN", "괄호를 닫는 우라라!가 필요합니다.")
@@ -378,7 +384,7 @@ class Parser:
                 break
             name = self.take()
             left = Expr(name, "index", name.text, left=left, type="int")
-        precedence = {"ADD": 1, "SUB": 1, "MUL": 2, "DIV": 2, "MOD": 2}
+        precedence = {"CONCAT": 0, "ADD": 1, "SUB": 1, "MUL": 2, "DIV": 2, "MOD": 2}
         while precedence.get(self.current.kind, -1) >= minimum:
             operator = self.take()
             right = self.expression(precedence[operator.kind] + 1, indexing=indexing)
@@ -443,12 +449,20 @@ def analyze(program: Program) -> None:
                     assignable(parameter.type, argument)
                 expr.arg_types = [p.type for p in callee.params]
                 expr.type, expr.binding = callee.type, callee.binding
+            elif expr.kind == "stringify":
+                if expression(expr.left) not in ("int", "real"):
+                    raise CompileError(expr.token, "모몽가!는 정수 또는 실수만 문자열로 변환합니다.")
             elif expr.kind == "binary":
                 left, right = expression(expr.left), expression(expr.right)
+                if expr.value == "CONCAT":
+                    if (left, right) != ("string", "string"):
+                        raise CompileError(expr.token, "시사!는 문자열끼리 연결합니다. 숫자는 모몽가!로 변환하세요.")
+                    expr.type = "string"
+                    return expr.type
                 if "int_array" in (left, right):
                     raise CompileError(expr.token, "배열 전체로 계산할 수 없습니다. 인덱스로 원소를 선택하세요.")
                 if "string" in (left, right):
-                    raise CompileError(expr.token, "문자열 산술·연결 연산은 아직 지원하지 않습니다.")
+                    raise CompileError(expr.token, "문자열 산술은 지원하지 않습니다. 연결에는 시사!를 사용하세요.")
                 if expr.value == "MOD" and (left != "int" or right != "int"):
                     raise CompileError(expr.token, "푸루루! 나머지 연산은 정수끼리만 사용할 수 있습니다.")
                 expr.type = "real" if "real" in (left, right) else "int"
@@ -602,10 +616,16 @@ def generate_c(program: Program, path: str) -> str:
             # Materialize each call before the next one: input/output order is defined.
             emit(f"{ctype[expr.type]} {name} = {expr.binding}({', '.join(arguments)});")
             return name
+        if expr.kind == "stringify":
+            value = expression(expr.left)
+            counter += 1
+            name = f"us_t{counter}"
+            emit(f"us_string {name} = us_string_{families[expr.left.type]}({value}, {expr.token.line}, {expr.token.column});")
+            return name
         left, right = expression(expr.left), expression(expr.right)
         counter += 1
         name = f"us_t{counter}"
-        family = "i" if expr.type == "int" else "r"
+        family = families[expr.type]
         if expr.type == "real":
             left, right = f"((double)({left}))", f"((double)({right}))"
         emit(f"{ctype[expr.type]} {name} = us_{family}_{expr.value.lower()}({left}, {right}, {expr.token.line}, {expr.token.column});")
@@ -711,7 +731,8 @@ def generate_c(program: Program, path: str) -> str:
             elif kind == "output":
                 value = expression(statement.expr)
                 family = families[statement.expr.type]
-                emit(f"us_print_{family}({value}, {statement.token.line}, {statement.token.column});")
+                operation = "print" if statement.newline else "write"
+                emit(f"us_{operation}_{family}({value}, {statement.token.line}, {statement.token.column});")
             elif kind == "call":
                 value = expression(statement.expr)
                 emit(f"(void){value};")
